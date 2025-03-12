@@ -134,9 +134,10 @@ const JavaScriptTestRunner = ({ initialCode }) => {
       {/* Problem Navigation */}
       <div className="mb-4 flex justify-between items-center">
         <button 
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200"
           onClick={goToPreviousProblem}
           disabled={currentProblemIndex === 0}
+          style={{ opacity: currentProblemIndex === 0 ? 0.5 : 1 }}
         >
           Previous
         </button>
@@ -145,10 +146,11 @@ const JavaScriptTestRunner = ({ initialCode }) => {
           <p className="text-sm text-gray-600">Problem {currentProblemIndex + 1} of {problems.length}</p>
         </div>
         <button 
-          className={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 ${!canGoToNextProblem ? 'cursor-not-allowed opacity-50' : ''}`}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200"
           onClick={goToNextProblem}
           disabled={currentProblemIndex === problems.length - 1 || !canGoToNextProblem}
           title={!canGoToNextProblem ? "Solve this problem first to continue" : ""}
+          style={{ opacity: (currentProblemIndex === problems.length - 1 || !canGoToNextProblem) ? 0.5 : 1 }}
         >
           Next
         </button>
@@ -169,7 +171,11 @@ const JavaScriptTestRunner = ({ initialCode }) => {
       
       <div className="flex mb-4" role="tablist">
         <button 
-          className={`px-4 py-2 mr-2 rounded-t-lg ${activeTab === 'code' ? 'bg-white' : 'bg-gray-300'}`}
+          className={`px-4 py-2 mr-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'code' 
+            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
+            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
+          }`}
           onClick={() => handleTabChange('code')}
           role="tab"
           aria-selected={activeTab === 'code'}
@@ -179,7 +185,11 @@ const JavaScriptTestRunner = ({ initialCode }) => {
           Code Editor
         </button>
         <button 
-          className={`px-4 py-2 mr-2 rounded-t-lg ${activeTab === 'tests' ? 'bg-white' : 'bg-gray-300'}`}
+          className={`px-4 py-2 mr-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'tests' 
+            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
+            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
+          }`}
           onClick={() => handleTabChange('tests')}
           role="tab"
           aria-selected={activeTab === 'tests'}
@@ -189,7 +199,11 @@ const JavaScriptTestRunner = ({ initialCode }) => {
           Test Cases
         </button>
         <button 
-          className={`px-4 py-2 rounded-t-lg ${activeTab === 'console' ? 'bg-white' : 'bg-gray-300'}`}
+          className={`px-4 py-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'console' 
+            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
+            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
+          }`}
           onClick={() => handleTabChange('console')}
           role="tab"
           aria-selected={activeTab === 'console'}
@@ -200,23 +214,45 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         </button>
       </div>
       
-      <div role="tabpanel" id="code-panel" aria-labelledby="code-tab" hidden={activeTab !== 'code'}>
+      <div 
+        role="tabpanel" 
+        id="code-panel" 
+        aria-labelledby="code-tab" 
+        hidden={activeTab !== 'code'}
+        className={`transition-opacity duration-200 ${activeTab === 'code' ? 'opacity-100' : 'opacity-0 absolute'}`}
+      >
         {activeTab === 'code' && <CodeEditor code={code} onChange={setCode} />}
       </div>
       
-      <div role="tabpanel" id="tests-panel" aria-labelledby="tests-tab" hidden={activeTab !== 'tests'}>
+      <div 
+        role="tabpanel" 
+        id="tests-panel" 
+        aria-labelledby="tests-tab" 
+        hidden={activeTab !== 'tests'}
+        className={`transition-opacity duration-200 ${activeTab === 'tests' ? 'opacity-100' : 'opacity-0 absolute'}`}
+      >
         {activeTab === 'tests' && <TestCases tests={tests} />}
       </div>
       
-      <div role="tabpanel" id="console-panel" aria-labelledby="console-tab" hidden={activeTab !== 'console'}>
+      <div 
+        role="tabpanel" 
+        id="console-panel" 
+        aria-labelledby="console-tab" 
+        hidden={activeTab !== 'console'}
+        className={`transition-opacity duration-200 ${activeTab === 'console' ? 'opacity-100' : 'opacity-0 absolute'}`}
+      >
         {activeTab === 'console' && <ConsoleOutput logs={consoleLogs} />}
       </div>
       
       <button
-        className="px-4 py-2 mb-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+        className="px-4 py-2 mb-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200 transform hover:scale-105"
         onClick={runTests}
         disabled={isRunning}
         aria-busy={isRunning}
+        style={{ 
+          opacity: isRunning ? 0.7 : 1,
+          boxShadow: !isRunning ? '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'
+        }}
       >
         {isRunning ? 'Running Tests...' : 'Run Tests'}
       </button>
@@ -230,14 +266,14 @@ const JavaScriptTestRunner = ({ initialCode }) => {
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
         <div 
-          className="bg-green-600 h-2.5 rounded-full" 
+          className="bg-green-600 h-2.5 rounded-full transition-all duration-500" 
           style={{width: `${(Array.from(solvedProblems).length / problems.length) * 100}%`}}
         ></div>
       </div>
       
       {/* Problem completion status */}
       {allTestsPass && (
-        <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-md">
+        <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-md animate-pulse">
           <p className="text-sm text-green-800">
             <strong>Great job!</strong> You've solved this problem.
             {currentProblemIndex < problems.length - 1 && " You can now move to the next problem."}
@@ -245,7 +281,7 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         </div>
       )}
       
-      <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded-md">
+      <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded-md transition-opacity duration-200 hover:bg-blue-50">
         <p className="text-sm text-blue-800">
           <strong>Feature:</strong> This app actually executes your JavaScript code and runs real tests against it! 
           You can use console.log() statements in your code and see the output in the Console tab.

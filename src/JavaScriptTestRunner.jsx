@@ -4,7 +4,7 @@ import { CodeEditor } from './components/CodeEditor';
 import { TestCases } from './components/TestCases';
 import { ConsoleOutput } from './components/ConsoleOutput';
 import { TestResults } from './components/TestResults';
-import { allTests, predefinedTests } from './data/testCases';
+import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 import { executeCode } from './utils/codeExecutor';
 

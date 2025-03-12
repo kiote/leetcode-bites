@@ -13,8 +13,7 @@ export const executeCode = (code, functionName, inputs) => {
   try {
     // Use Function constructor for sandboxed execution
     // Note: This is still not completely secure for untrusted code
-    const userFunction = new Function(userCode);
-    const output = userFunction();
+    const output = (new Function(userCode))();
     const executionTime = performance.now() - start;
     
     return { output, executionTime };

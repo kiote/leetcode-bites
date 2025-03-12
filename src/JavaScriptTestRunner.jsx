@@ -154,9 +154,16 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         </button>
       </div>
       
+      {/* Main Problem Description - Stays the same for all problems */}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <h3 className="font-bold mb-2 text-blue-800">Main Problem:</h3>
+        <p>This series of exercises will help you practice implementing common algorithms and data structures. 
+        Complete each challenge to build your problem-solving skills and prepare for technical interviews.</p>
+      </div>
+      
       {/* Problem Description */}
       <div className="mb-4 p-4 bg-white border border-gray-300 rounded-md">
-        <h3 className="font-bold mb-2">Description:</h3>
+        <h3 className="font-bold mb-2">Current task:</h3>
         <p>{currentProblem.description}</p>
       </div>
       

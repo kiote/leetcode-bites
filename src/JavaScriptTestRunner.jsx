@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { CodeEditor } from './components/CodeEditor';
 import { TestCases } from './components/TestCases';
@@ -38,19 +38,64 @@ const JavaScriptTestRunner = ({ initialCode }) => {
   const currentProblem = problems[currentProblemIndex];
   
   // Track solved problems
-  const [solvedProblems, setSolvedProblems] = useState(new Set());
+  const [solvedProblems, setSolvedProblems] = useState(() => {
+    // Load solved problems from localStorage if available
+    const saved = localStorage.getItem('solvedProblems');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
   
-  const [code, setCode] = useState(initialCode || currentProblem.initialCode);
+  // Store code for all problems
+  const [allProblemsCode, setAllProblemsCode] = useState(() => {
+    // Load saved code from localStorage if available
+    const savedCode = localStorage.getItem('userCode');
+    return savedCode ? JSON.parse(savedCode) : {};
+  });
+  
+  const [code, setCode] = useState('');
   const [testResults, setTestResults] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState('code');
   const consoleLogs = useConsoleCapture();
   
-  // Update code when problem changes
+  // Track the current problem ID to detect problem changes
+  const previousProblemIdRef = useRef(null);
+  
+  // Initialize code when component mounts or problem changes
   useEffect(() => {
-    setCode(currentProblem.initialCode);
-    setTestResults([]);
-  }, [currentProblemIndex, currentProblem.initialCode]);
+    const currentProblemId = currentProblem.id;
+    
+    // Check if we've changed problems
+    if (previousProblemIdRef.current !== currentProblemId) {
+      // Get saved code for current problem or use initial code
+      const savedProblemCode = allProblemsCode[currentProblemId];
+      
+      setCode(savedProblemCode || currentProblem.initialCode);
+      setTestResults([]);
+      
+      previousProblemIdRef.current = currentProblemId;
+    }
+  }, [currentProblem.id, currentProblem.initialCode, allProblemsCode]);
+  
+  // Handle code changes from user input only
+  const handleCodeChange = useCallback((newCode) => {
+    setCode(newCode);
+    
+    // Save code to localStorage immediately on user change
+    setAllProblemsCode(prev => {
+      const updated = {
+        ...prev,
+        [currentProblem.id]: newCode
+      };
+      
+      localStorage.setItem('userCode', JSON.stringify(updated));
+      return updated;
+    });
+  }, [currentProblem.id]);
+  
+  // Save solved problems to localStorage
+  useEffect(() => {
+    localStorage.setItem('solvedProblems', JSON.stringify([...solvedProblems]));
+  }, [solvedProblems]);
   
   // Memoize tests for the current problem
   const tests = useMemo(() => allTests[currentProblem.id], [currentProblem.id]);
@@ -221,7 +266,7 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         hidden={activeTab !== 'code'}
         className={`transition-opacity duration-200 ${activeTab === 'code' ? 'opacity-100' : 'opacity-0 absolute'}`}
       >
-        {activeTab === 'code' && <CodeEditor code={code} onChange={setCode} />}
+        {activeTab === 'code' && <CodeEditor code={code} onChange={handleCodeChange} />}
       </div>
       
       <div 

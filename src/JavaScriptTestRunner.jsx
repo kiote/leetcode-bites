@@ -8,6 +8,74 @@ import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 import { executeCode } from './utils/codeExecutor';
 
+// App version - update this with each deploy
+const APP_VERSION = '1.0.0';
+
+// Utility function to sanitize code input (especially from mobile devices)
+const sanitizeCode = (code) => {
+  if (!code) return '';
+  
+  // Create a map of problematic characters to their proper coding equivalents
+  const charMap = {
+    // Smart quotes
+    '\u2018': "'", // '
+    '\u2019': "'", // '
+    '\u201A': "'", // ‚
+    '\u201B': "'", // ‛
+    '\u201C': '"', // "
+    '\u201D': '"', // "
+    '\u201E': '"', // „
+    '\u201F': '"', // ‟
+    // Dashes
+    '\u2013': '-', // –
+    '\u2014': '-', // —
+    // Other common problematic characters
+    '\u2026': '...', // …
+    '\u00A0': ' ', // Non-breaking space
+    '\u3000': ' ', // Ideographic space
+    '\uFEFF': '', // Zero-width no-break space
+    '\u200B': '', // Zero-width space
+    '\u200C': '', // Zero-width non-joiner
+    '\u200D': '', // Zero-width joiner
+    // Additional punctuation
+    '\u2022': '*', // •
+    '\u2023': '>', // ‣
+    '\u2043': '-', // ⁃
+    '\u02D7': '-', // ˗
+    // Brackets and parentheses
+    '\uFF08': '(', // （
+    '\uFF09': ')', // ）
+    '\uFF5B': '{', // ｛
+    '\uFF5D': '}', // ｝
+    '\uFF3B': '[', // ［
+    '\uFF3D': ']', // ］
+    // Punctuation
+    '\uFF1A': ':', // ：
+    '\uFF1B': ';', // ；
+    '\uFF0C': ',', // ，
+    '\u3001': ',', // 、
+    '\uFF0E': '.', // ．
+    '\uFF01': '!', // ！
+    '\uFF1F': '?', // ？
+  };
+  
+  // Replace characters using the map
+  let sanitized = code;
+  for (const [problematic, replacement] of Object.entries(charMap)) {
+    sanitized = sanitized.split(problematic).join(replacement);
+  }
+  
+  // Additional generic replacements for any remaining smart quotes or similar characters
+  sanitized = sanitized
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/[—–]/g, '-')
+    .replace(/[∶]/g, ':')
+    .replace(/[；]/g, ';');
+  
+  return sanitized;
+};
+
 // Custom hook for console capture
 const useConsoleCapture = () => {
   const [logs, setLogs] = useState([]);
@@ -78,13 +146,15 @@ const JavaScriptTestRunner = ({ initialCode }) => {
   
   // Handle code changes from user input only
   const handleCodeChange = useCallback((newCode) => {
-    setCode(newCode);
+    // Sanitize the code before setting it
+    const sanitizedCode = sanitizeCode(newCode);
+    setCode(sanitizedCode);
     
     // Save code to localStorage immediately on user change
     setAllProblemsCode(prev => {
       const updated = {
         ...prev,
-        [currentProblem.id]: newCode
+        [currentProblem.id]: sanitizedCode
       };
       
       localStorage.setItem('userCode', JSON.stringify(updated));
@@ -116,12 +186,21 @@ const JavaScriptTestRunner = ({ initialCode }) => {
     setIsRunning(true);
     setTestResults([]);
     
+    // Sanitize the code before execution
+    const sanitizedCode = sanitizeCode(code);
+    
+    // Update editor with sanitized code if different from original
+    if (sanitizedCode !== code) {
+      console.debug('Auto-fixed code formatting issues');
+      setCode(sanitizedCode);
+    }
+    
     // Use setTimeout to prevent UI blocking during test execution
     setTimeout(() => {
       try {
         const results = tests.map(test => {
           try {
-            const { output, executionTime } = executeCode(code, test.functionName, test.inputs);
+            const { output, executionTime } = executeCode(sanitizedCode, test.functionName, test.inputs);
             const passed = output === test.expectedOutput;
             
             return {
@@ -326,11 +405,9 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         </div>
       )}
       
-      <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded-md transition-opacity duration-200 hover:bg-blue-50">
-        <p className="text-sm text-blue-800">
-          <strong>Feature:</strong> This app actually executes your JavaScript code and runs real tests against it! 
-          You can use console.log() statements in your code and see the output in the Console tab.
-        </p>
+      {/* App version footer */}
+      <div className="mt-4 text-xs text-gray-500 text-right">
+        Version {APP_VERSION}
       </div>
     </div>
   );

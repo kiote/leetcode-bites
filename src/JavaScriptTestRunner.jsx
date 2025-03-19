@@ -7,9 +7,10 @@ import { TestResults } from './components/TestResults';
 import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 import { executeCode } from './utils/codeExecutor';
+import { getAppVersion } from './utils/versionManager';
 
-// App version - update this with each deploy
-const APP_VERSION = '1.0.0';
+// Get the application version dynamically
+const APP_VERSION = getAppVersion();
 
 // Utility function to sanitize code input (especially from mobile devices)
 const sanitizeCode = (code) => {

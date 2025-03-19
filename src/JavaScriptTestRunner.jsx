@@ -281,14 +281,47 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         </button>
       </div>
       
-      {/* Main Problem Description - Stays the same for all problems */}
+      {/* Main Problem Description */}
       <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
         <h3 className="font-bold mb-2 text-blue-800">Main Problem:</h3>
-        <p>This series of exercises will help you practice implementing common algorithms and data structures. 
+        <p className="mb-2">This series of exercises will help you practice implementing common algorithms and data structures. 
         Complete each challenge to build your problem-solving skills and prepare for technical interviews.</p>
+        
+        <div className="mt-4 p-3 bg-white rounded border border-blue-100">
+          <h4 className="font-semibold text-blue-700 mb-1">Problem Description:</h4>
+          <p className="mb-2">Given a string s, find the length of the longest substring without duplicate characters.</p>
+          
+          <div className="mt-3">
+            <h5 className="font-medium text-blue-600">Examples:</h5>
+            <div className="pl-2 mt-1 border-l-2 border-blue-200">
+              <p className="mb-1"><span className="font-medium">Example 1:</span></p>
+              <p className="mb-1 pl-2">Input: s = "abcabcbb"</p>
+              <p className="mb-1 pl-2">Output: 3</p>
+              <p className="mb-3 pl-2 text-gray-600 text-sm">Explanation: The answer is "abc", with the length of 3.</p>
+
+              <p className="mb-1"><span className="font-medium">Example 2:</span></p>
+              <p className="mb-1 pl-2">Input: s = "bbbbb"</p>
+              <p className="mb-1 pl-2">Output: 1</p>
+              <p className="mb-3 pl-2 text-gray-600 text-sm">Explanation: The answer is "b", with the length of 1.</p>
+
+              <p className="mb-1"><span className="font-medium">Example 3:</span></p>
+              <p className="mb-1 pl-2">Input: s = "pwwkew"</p>
+              <p className="mb-1 pl-2">Output: 3</p>
+              <p className="mb-1 pl-2 text-gray-600 text-sm">Explanation: The answer is "wke", with the length of 3.</p>
+              <p className="mb-1 pl-2 text-gray-600 text-sm">Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.</p>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <h5 className="font-medium text-blue-600">Constraints:</h5>
+            <ul className="list-disc pl-5 mt-1">
+              <li>0 ≤ s.length ≤ 5 * 10<sup>4</sup></li>
+              <li>s consists of English letters, digits, symbols and spaces.</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      
-      {/* Problem Description */}
+
       <div className="mb-4 p-4 bg-white border border-gray-300 rounded-md">
         <h3 className="font-bold mb-2">Current task:</h3>
         <p>{currentProblem.description}</p>

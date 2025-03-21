@@ -1,7 +1,7 @@
 // Main problem content with examples and constraints
 const mainProblem = {
   title: "Main Problem:",
-  description: "This series of exercises will help you practice implementing common algorithms and data structures in Python. Complete each challenge to build your problem-solving skills and prepare for technical interviews.",
+  description: "Given a string s, find the length of the longest substring without duplicate characters.",
   
   // Examples section data
   examples: [

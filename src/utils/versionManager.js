@@ -4,7 +4,7 @@
  */
 
 // Default starting version - will be used if no other version source is available
-const DEFAULT_VERSION = '1.0.0';
+const DEFAULT_VERSION = '0.0.1';
 
 // Parse a version string into components
 const parseVersion = (versionString) => {

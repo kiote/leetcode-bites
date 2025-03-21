@@ -23,3 +23,9 @@ git2gpt -s . > out.txt
 ```
 
 check `.gptignore` file in a project root, that it ignores all unneeded stuff
+
+## Check linting errors locally
+
+```
+npx eslint src/ --ext .js,.jsx
+```

@@ -58,7 +58,7 @@ const useConsoleCapture = () => {
       ).join(' ');
       
       // Add to logs state
-      setLogs(prevLogs => [...prevLogs, logString]);
+      setLogs(prevLogs => [...prevLogs, { source: 'js', content: logString }]);
     };
     
     // Cleanup: restore original console.log when component unmounts
@@ -67,8 +67,21 @@ const useConsoleCapture = () => {
     };
   }, []);
   
-  // Return the logs array
-  return logs;
+  // Function to add Python stdout to logs
+  const addPythonLogs = useCallback((stdout) => {
+    if (stdout && stdout.trim()) {
+      // Split by newlines to handle multiple print statements
+      const pythonLogs = stdout.split('\n').filter(log => log.trim());
+      
+      setLogs(prevLogs => [
+        ...prevLogs,
+        ...pythonLogs.map(content => ({ source: 'python', content }))
+      ]);
+    }
+  }, []);
+  
+  // Return the logs array and the function to add Python logs
+  return { logs, addPythonLogs };
 };
 
 const PythonTestRunner = ({ initialCode }) => {
@@ -96,7 +109,7 @@ const PythonTestRunner = ({ initialCode }) => {
   const [testResults, setTestResults] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState('code');
-  const consoleLogs = useConsoleCapture();
+  const { logs: consoleLogs, addPythonLogs } = useConsoleCapture();
   
   // Initialize Pyodide
   const { isLoading: isPyodideLoading, isReady: isPyodideReady, error: pyodideError, runPython } = usePyodide();
@@ -181,6 +194,12 @@ const PythonTestRunner = ({ initialCode }) => {
         const results = await Promise.all(tests.map(async (test) => {
           try {
             const { output, stdout, executionTime } = await runPython(sanitizedCode, test.functionName, test.inputs);
+            
+            // Add Python stdout to console logs
+            if (stdout) {
+              addPythonLogs(stdout);
+            }
+            
             const passed = output === test.expectedOutput; // Using loose equality to handle type differences
             
             return {
@@ -221,7 +240,7 @@ const PythonTestRunner = ({ initialCode }) => {
         setIsRunning(false);
       }
     }, 0);
-  }, [code, tests, currentProblem.id, runPython, isPyodideReady]);
+  }, [code, tests, currentProblem.id, runPython, isPyodideReady, addPythonLogs]);
   
   // Tab selection handler
   const handleTabChange = useCallback((tab) => {

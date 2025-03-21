@@ -3,24 +3,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with unique characters',
-      testCode: 'hasAllUniqueChars("abc") === true',
-      functionName: 'hasAllUniqueChars',
+      testCode: 'has_all_unique_chars("abc") == True',
+      functionName: 'has_all_unique_chars',
       inputs: ['abc'],
       expectedOutput: true
     },
     {
       id: 2,
       name: 'Test with duplicate characters',
-      testCode: 'hasAllUniqueChars("abca") === false',
-      functionName: 'hasAllUniqueChars',
+      testCode: 'has_all_unique_chars("abca") == False',
+      functionName: 'has_all_unique_chars',
       inputs: ['abca'],
       expectedOutput: false
     },
     {
       id: 3,
       name: 'Test with empty string',
-      testCode: 'hasAllUniqueChars("") === true',
-      functionName: 'hasAllUniqueChars',
+      testCode: 'has_all_unique_chars("") == True',
+      functionName: 'has_all_unique_chars',
       inputs: [''],
       expectedOutput: true
     }
@@ -29,24 +29,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test unique substring',
-      testCode: 'isSubstringUnique("abcdef", 0, 2) === true',
-      functionName: 'isSubstringUnique',
+      testCode: 'is_substring_unique("abcdef", 0, 2) == True',
+      functionName: 'is_substring_unique',
       inputs: ['abcdef', 0, 2],
       expectedOutput: true
     },
     {
       id: 2,
       name: 'Test substring with duplicates',
-      testCode: 'isSubstringUnique("abcaef", 0, 3) === false',
-      functionName: 'isSubstringUnique',
+      testCode: 'is_substring_unique("abcaef", 0, 3) == False',
+      functionName: 'is_substring_unique',
       inputs: ['abcaef', 0, 3],
       expectedOutput: false
     },
     {
       id: 3,
       name: 'Test single character substring',
-      testCode: 'isSubstringUnique("abc", 1, 1) === true',
-      functionName: 'isSubstringUnique',
+      testCode: 'is_substring_unique("abc", 1, 1) == True',
+      functionName: 'is_substring_unique',
       inputs: ['abc', 1, 1],
       expectedOutput: true
     }
@@ -55,24 +55,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Find all unique substrings in short string',
-      testCode: 'JSON.stringify(findAllUniqueSubstrings("abc").sort()) === JSON.stringify(["a", "ab", "abc", "b", "bc", "c"].sort())',
-      functionName: 'findAllUniqueSubstrings',
+      testCode: 'sorted(find_all_unique_substrings("abc")) == sorted(["a", "ab", "abc", "b", "bc", "c"])',
+      functionName: 'find_all_unique_substrings',
       inputs: ['abc'],
       expectedOutput: ["a", "ab", "abc", "b", "bc", "c"]
     },
     {
       id: 2,
       name: 'Find all unique substrings with duplicates',
-      testCode: 'JSON.stringify(findAllUniqueSubstrings("abb").sort()) === JSON.stringify(["a", "ab", "b"].sort())',
-      functionName: 'findAllUniqueSubstrings',
+      testCode: 'sorted(find_all_unique_substrings("abb")) == sorted(["a", "ab", "b"])',
+      functionName: 'find_all_unique_substrings',
       inputs: ['abb'],
       expectedOutput: ["a", "ab", "b"]
     },
     {
       id: 3,
       name: 'Test with empty string',
-      testCode: 'findAllUniqueSubstrings("").length === 0',
-      functionName: 'findAllUniqueSubstrings',
+      testCode: 'len(find_all_unique_substrings("")) == 0',
+      functionName: 'find_all_unique_substrings',
       inputs: [''],
       expectedOutput: []
     }
@@ -81,32 +81,32 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with example string "abcabcbb"',
-      testCode: 'lengthOfLongestSubstringBruteForce("abcabcbb") === 3',
-      functionName: 'lengthOfLongestSubstringBruteForce',
+      testCode: 'length_of_longest_substring_brute_force("abcabcbb") == 3',
+      functionName: 'length_of_longest_substring_brute_force',
       inputs: ['abcabcbb'],
       expectedOutput: 3
     },
     {
       id: 2,
       name: 'Test with repeated characters "bbbbb"',
-      testCode: 'lengthOfLongestSubstringBruteForce("bbbbb") === 1',
-      functionName: 'lengthOfLongestSubstringBruteForce',
+      testCode: 'length_of_longest_substring_brute_force("bbbbb") == 1',
+      functionName: 'length_of_longest_substring_brute_force',
       inputs: ['bbbbb'],
       expectedOutput: 1
     },
     {
       id: 3,
       name: 'Test with example string "pwwkew"',
-      testCode: 'lengthOfLongestSubstringBruteForce("pwwkew") === 3',
-      functionName: 'lengthOfLongestSubstringBruteForce',
+      testCode: 'length_of_longest_substring_brute_force("pwwkew") == 3',
+      functionName: 'length_of_longest_substring_brute_force',
       inputs: ['pwwkew'],
       expectedOutput: 3
     },
     {
       id: 4,
       name: 'Test with empty string',
-      testCode: 'lengthOfLongestSubstringBruteForce("") === 0',
-      functionName: 'lengthOfLongestSubstringBruteForce',
+      testCode: 'length_of_longest_substring_brute_force("") == 0',
+      functionName: 'length_of_longest_substring_brute_force',
       inputs: [''],
       expectedOutput: 0
     }
@@ -115,24 +115,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test from index 0 with "abcabcbb"',
-      testCode: 'longestSubstringFromIndex("abcabcbb", 0) === 3',
-      functionName: 'longestSubstringFromIndex',
+      testCode: 'longest_substring_from_index("abcabcbb", 0) == 3',
+      functionName: 'longest_substring_from_index',
       inputs: ['abcabcbb', 0],
       expectedOutput: 3
     },
     {
       id: 2,
       name: 'Test from index 2 with "abcabcbb"',
-      testCode: 'longestSubstringFromIndex("abcabcbb", 2) === 4',
-      functionName: 'longestSubstringFromIndex',
+      testCode: 'longest_substring_from_index("abcabcbb", 2) == 4',
+      functionName: 'longest_substring_from_index',
       inputs: ['abcabcbb', 2],
       expectedOutput: 4
     },
     {
       id: 3,
       name: 'Test with single repeating character',
-      testCode: 'longestSubstringFromIndex("bbbbb", 2) === 1',
-      functionName: 'longestSubstringFromIndex',
+      testCode: 'longest_substring_from_index("bbbbb", 2) == 1',
+      functionName: 'longest_substring_from_index',
       inputs: ['bbbbb', 2],
       expectedOutput: 1
     }
@@ -141,24 +141,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with valid fixed-size window',
-      testCode: 'hasUniqueSubstringOfLength("abcabcbb", 3) === true',
-      functionName: 'hasUniqueSubstringOfLength',
+      testCode: 'has_unique_substring_of_length("abcabcbb", 3) == True',
+      functionName: 'has_unique_substring_of_length',
       inputs: ['abcabcbb', 3],
       expectedOutput: true
     },
     {
       id: 2,
       name: 'Test with invalid fixed-size window',
-      testCode: 'hasUniqueSubstringOfLength("bbbbb", 2) === false',
-      functionName: 'hasUniqueSubstringOfLength',
+      testCode: 'has_unique_substring_of_length("bbbbb", 2) == False',
+      functionName: 'has_unique_substring_of_length',
       inputs: ['bbbbb', 2],
       expectedOutput: false
     },
     {
       id: 3,
       name: 'Test with window larger than string',
-      testCode: 'hasUniqueSubstringOfLength("abc", 4) === false',
-      functionName: 'hasUniqueSubstringOfLength',
+      testCode: 'has_unique_substring_of_length("abc", 4) == False',
+      functionName: 'has_unique_substring_of_length',
       inputs: ['abc', 4],
       expectedOutput: false
     }
@@ -167,24 +167,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with example string "abcabcbb"',
-      testCode: 'lengthOfLongestSubstringDynamic("abcabcbb") === 3',
-      functionName: 'lengthOfLongestSubstringDynamic',
+      testCode: 'length_of_longest_substring_dynamic("abcabcbb") == 3',
+      functionName: 'length_of_longest_substring_dynamic',
       inputs: ['abcabcbb'],
       expectedOutput: 3
     },
     {
       id: 2,
       name: 'Test with repeated characters "bbbbb"',
-      testCode: 'lengthOfLongestSubstringDynamic("bbbbb") === 1',
-      functionName: 'lengthOfLongestSubstringDynamic',
+      testCode: 'length_of_longest_substring_dynamic("bbbbb") == 1',
+      functionName: 'length_of_longest_substring_dynamic',
       inputs: ['bbbbb'],
       expectedOutput: 1
     },
     {
       id: 3,
       name: 'Test with example string "pwwkew"',
-      testCode: 'lengthOfLongestSubstringDynamic("pwwkew") === 3',
-      functionName: 'lengthOfLongestSubstringDynamic',
+      testCode: 'length_of_longest_substring_dynamic("pwwkew") == 3',
+      functionName: 'length_of_longest_substring_dynamic',
       inputs: ['pwwkew'],
       expectedOutput: 3
     }
@@ -193,24 +193,24 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with example string "abcabcbb"',
-      testCode: 'lengthOfLongestSubstringOptimized("abcabcbb") === 3',
-      functionName: 'lengthOfLongestSubstringOptimized',
+      testCode: 'length_of_longest_substring_optimized("abcabcbb") == 3',
+      functionName: 'length_of_longest_substring_optimized',
       inputs: ['abcabcbb'],
       expectedOutput: 3
     },
     {
       id: 2,
       name: 'Test with longer example "abcdeafbdgcbb"',
-      testCode: 'lengthOfLongestSubstringOptimized("abcdeafbdgcbb") === 7',
-      functionName: 'lengthOfLongestSubstringOptimized',
+      testCode: 'length_of_longest_substring_optimized("abcdeafbdgcbb") == 7',
+      functionName: 'length_of_longest_substring_optimized',
       inputs: ['abcdeafbdgcbb'],
       expectedOutput: 7
     },
     {
       id: 3,
       name: 'Test with repeated characters "bbbbb"',
-      testCode: 'lengthOfLongestSubstringOptimized("bbbbb") === 1',
-      functionName: 'lengthOfLongestSubstringOptimized',
+      testCode: 'length_of_longest_substring_optimized("bbbbb") == 1',
+      functionName: 'length_of_longest_substring_optimized',
       inputs: ['bbbbb'],
       expectedOutput: 1
     }
@@ -219,40 +219,40 @@ export const allTests = {
     {
       id: 1,
       name: 'Test with example string "abcabcbb"',
-      testCode: 'lengthOfLongestSubstring("abcabcbb") === 3',
-      functionName: 'lengthOfLongestSubstring',
+      testCode: 'length_of_longest_substring("abcabcbb") == 3',
+      functionName: 'length_of_longest_substring',
       inputs: ['abcabcbb'],
       expectedOutput: 3
     },
     {
       id: 2,
       name: 'Test with repeated characters "bbbbb"',
-      testCode: 'lengthOfLongestSubstring("bbbbb") === 1',
-      functionName: 'lengthOfLongestSubstring',
+      testCode: 'length_of_longest_substring("bbbbb") == 1',
+      functionName: 'length_of_longest_substring',
       inputs: ['bbbbb'],
       expectedOutput: 1
     },
     {
       id: 3,
       name: 'Test with example string "pwwkew"',
-      testCode: 'lengthOfLongestSubstring("pwwkew") === 3',
-      functionName: 'lengthOfLongestSubstring',
+      testCode: 'length_of_longest_substring("pwwkew") == 3',
+      functionName: 'length_of_longest_substring',
       inputs: ['pwwkew'],
       expectedOutput: 3
     },
     {
       id: 4,
       name: 'Test with empty string',
-      testCode: 'lengthOfLongestSubstring("") === 0',
-      functionName: 'lengthOfLongestSubstring',
+      testCode: 'length_of_longest_substring("") == 0',
+      functionName: 'length_of_longest_substring',
       inputs: [''],
       expectedOutput: 0
     },
     {
       id: 5,
       name: 'Test with single character',
-      testCode: 'lengthOfLongestSubstring("a") === 1',
-      functionName: 'lengthOfLongestSubstring',
+      testCode: 'length_of_longest_substring("a") == 1',
+      functionName: 'length_of_longest_substring',
       inputs: ['a'],
       expectedOutput: 1
     }

@@ -1,7 +1,6 @@
 name: Test and Deploy
 
 on:
-  # Run on all pushes to main, and for PRs targeting main
   push:
     branches: [ main ]
   pull_request:
@@ -11,93 +10,68 @@ permissions:
   contents: write
   pages: write
 
-# Prevent overlapping runs on the same branch.
-concurrency:
-  group: "test-and-deploy-${{ github.ref }}"
-  cancel-in-progress: true
-
 jobs:
-  # -----------------------
+  # --------------------------------------
   # 1) Test Job
-  # -----------------------
+  # --------------------------------------
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          # set to 0 if you need full history
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          # Optionally enable built-in caching for npm/pnpm/yarn
-          cache: 'pnpm'
+          # You can enable the built-in pnpm cache:
+          # cache: 'pnpm'
 
-      - name: Install PNPM
+      - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:
-          version: 8
-          run_install: false
-
-      - name: Get PNPM store directory
-        id: pnpm-cache
-        run: echo "STORE_PATH=$(pnpm store path | tr -d '\n')" >> $GITHUB_OUTPUT
+          version: '8'
+          # run_install: false
 
       - name: Cache PNPM store
         uses: actions/cache@v3
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        # Use frozen-lockfile to ensure lockfile integrity
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Run tests
         run: pnpm test
 
-  # -----------------------
+  # --------------------------------------
   # 2) Deploy Job
-  # -----------------------
+  # --------------------------------------
   deploy:
-    # Make sure deployment only occurs AFTER tests pass
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'pnpm'
+          # cache: 'pnpm'
 
-      - name: Install PNPM
+      - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:
-          version: 8
-          run_install: false
-
-      - name: Get PNPM store directory
-        id: pnpm-cache
-        run: echo "STORE_PATH=$(pnpm store path | tr -d '\n')" >> $GITHUB_OUTPUT
+          version: '8'
 
       - name: Cache PNPM store
         uses: actions/cache@v3
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
@@ -107,12 +81,11 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Pass the commit SHA (or any other env variables you need)
           VITE_APP_VERSION: ${{ github.sha }}
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
           folder: build
+          branch: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}

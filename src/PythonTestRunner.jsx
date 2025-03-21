@@ -39,33 +39,9 @@ const sanitizeCode = (code) => {
   return sanitized;
 };
 
-// Custom hook for console capture
-const useConsoleCapture = () => {
+// Simplified hook for Python console capture only
+const usePythonConsoleCapture = () => {
   const [logs, setLogs] = useState([]);
-  
-  useEffect(() => {
-    // Save the original console.log
-    const originalConsoleLog = console.log;
-    
-    // Override console.log to capture logs
-    console.log = (...args) => {
-      // Call original console.log
-      originalConsoleLog(...args);
-      
-      // Convert args to a readable string
-      const logString = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      // Add to logs state
-      setLogs(prevLogs => [...prevLogs, { source: 'js', content: logString }]);
-    };
-    
-    // Cleanup: restore original console.log when component unmounts
-    return () => {
-      console.log = originalConsoleLog;
-    };
-  }, []);
   
   // Function to add Python stdout to logs
   const addPythonLogs = useCallback((stdout) => {
@@ -75,7 +51,7 @@ const useConsoleCapture = () => {
       
       setLogs(prevLogs => [
         ...prevLogs,
-        ...pythonLogs.map(content => ({ source: 'python', content }))
+        ...pythonLogs.map(content => ({ content }))
       ]);
     }
   }, []);
@@ -109,7 +85,7 @@ const PythonTestRunner = ({ initialCode }) => {
   const [testResults, setTestResults] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState('code');
-  const { logs: consoleLogs, addPythonLogs } = useConsoleCapture();
+  const { logs: consoleLogs, addPythonLogs } = usePythonConsoleCapture();
   
   // Initialize Pyodide
   const { isLoading: isPyodideLoading, isReady: isPyodideReady, error: pyodideError, runPython } = usePyodide();

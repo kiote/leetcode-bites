@@ -63,7 +63,7 @@ const AboutPage = () => {
           <ul>
             <li>⚛️ React for our interactive UI</li>
             <li>🐍 Pyodide for running Python code in the browser</li>
-            <li>🎨 Tailwind CSS for styling</li>
+            <li>🎨 Tailwind/CSS for styling</li>
             <li>🤖 Github Copilot / Claude 3.7 with thinking for code</li>
           </ul>
         </section>

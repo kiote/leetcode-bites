@@ -8,6 +8,7 @@ import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 import { executeCode } from './utils/codeExecutor';
 import { getAppVersion } from './utils/versionManager';
+import { usePyodide } from './hooks/usePyodide'; // Import Pyodide hook
 
 // Get the application version dynamically
 const APP_VERSION = getAppVersion();
@@ -126,6 +127,12 @@ const JavaScriptTestRunner = ({ initialCode }) => {
   const [activeTab, setActiveTab] = useState('code');
   const consoleLogs = useConsoleCapture();
   
+  // Language selection state (JavaScript or Python)
+  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
+  
+  // Initialize Pyodide
+  const { isLoading: isPyodideLoading, isReady: isPyodideReady, error: pyodideError, runPython } = usePyodide();
+  
   // Track the current problem ID to detect problem changes
   const previousProblemIdRef = useRef(null);
   
@@ -197,30 +204,64 @@ const JavaScriptTestRunner = ({ initialCode }) => {
     }
     
     // Use setTimeout to prevent UI blocking during test execution
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        const results = tests.map(test => {
-          try {
-            const { output, executionTime } = executeCode(sanitizedCode, test.functionName, test.inputs);
-            const passed = output === test.expectedOutput;
-            
-            return {
-              ...test,
-              passed,
-              error: passed ? null : `Expected ${test.expectedOutput}, but got ${output}`,
-              output,
-              executionTime
-            };
-          } catch (e) {
-            return {
-              ...test,
-              passed: false,
-              error: e.toString(),
-              output: 'Error',
-              executionTime: 0
-            };
+        let results;
+        
+        if (selectedLanguage === 'javascript') {
+          // Execute JavaScript code
+          results = tests.map(test => {
+            try {
+              const { output, executionTime } = executeCode(sanitizedCode, test.functionName, test.inputs);
+              const passed = output === test.expectedOutput;
+              
+              return {
+                ...test,
+                passed,
+                error: passed ? null : `Expected ${test.expectedOutput}, but got ${output}`,
+                output,
+                executionTime
+              };
+            } catch (e) {
+              return {
+                ...test,
+                passed: false,
+                error: e.toString(),
+                output: 'Error',
+                executionTime: 0
+              };
+            }
+          });
+        } else if (selectedLanguage === 'python') {
+          // Execute Python code
+          if (!isPyodideReady) {
+            throw new Error('Pyodide is not ready yet. Please wait for it to load completely.');
           }
-        });
+          
+          results = await Promise.all(tests.map(async (test) => {
+            try {
+              const { output, stdout, executionTime } = await runPython(sanitizedCode, test.functionName, test.inputs);
+              const passed = output === test.expectedOutput; // Using loose equality to handle type differences
+              
+              return {
+                ...test,
+                passed,
+                error: passed ? null : `Expected ${test.expectedOutput}, but got ${output}`,
+                output,
+                stdout,
+                executionTime
+              };
+            } catch (e) {
+              return {
+                ...test,
+                passed: false,
+                error: e.error || e.toString(),
+                output: 'Error',
+                executionTime: e.executionTime || 0
+              };
+            }
+          }));
+        }
         
         setTestResults(results);
         
@@ -230,11 +271,18 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         }
       } catch (error) {
         console.error("Test execution error:", error);
+        setTestResults([{
+          functionName: "Error",
+          passed: false,
+          error: error.toString(),
+          output: 'Error running tests',
+          executionTime: 0
+        }]);
       } finally {
         setIsRunning(false);
       }
     }, 0);
-  }, [code, tests, currentProblem.id]);
+  }, [code, tests, currentProblem.id, selectedLanguage, runPython, isPyodideReady]);
   
   // Tab selection handler
   const handleTabChange = useCallback((tab) => {
@@ -327,6 +375,50 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         <p>{currentProblem.description}</p>
       </div>
       
+      {/* Language Selector */}
+      <div className="mb-4 flex items-center">
+        <label className="mr-2 font-semibold">Language:</label>
+        <div className="flex bg-gray-200 rounded-lg p-1">
+          <button
+            className={`px-3 py-1 rounded-md transition-all ${
+              selectedLanguage === 'javascript' 
+                ? 'bg-white shadow-sm text-blue-600 font-medium' 
+                : 'text-gray-700 hover:bg-gray-300'
+            }`}
+            onClick={() => setSelectedLanguage('javascript')}
+          >
+            JavaScript
+          </button>
+          <button
+            className={`px-3 py-1 rounded-md ml-1 transition-all ${
+              selectedLanguage === 'python' 
+                ? 'bg-white shadow-sm text-blue-600 font-medium' 
+                : 'text-gray-700 hover:bg-gray-300'
+            }`}
+            onClick={() => setSelectedLanguage('python')}
+          >
+            Python {isPyodideLoading && '(loading...)'}
+          </button>
+        </div>
+      </div>
+      
+      {/* Pyodide Status Message */}
+      {selectedLanguage === 'python' && (
+        <div className={`mb-4 p-2 rounded-md ${
+          pyodideError ? 'bg-red-100 text-red-700' : 
+          isPyodideLoading ? 'bg-yellow-100 text-yellow-700' : 
+          isPyodideReady ? 'bg-green-100 text-green-700' : ''
+        }`}>
+          {pyodideError ? (
+            <p>Error loading Python environment: {pyodideError}</p>
+          ) : isPyodideLoading ? (
+            <p>Loading Python environment... This may take a few moments.</p>
+          ) : isPyodideReady ? (
+            <p>Python environment ready!</p>
+          ) : null}
+        </div>
+      )}
+      
       <div className="flex mb-4" role="tablist">
         <button 
           className={`px-4 py-2 mr-2 rounded-t-lg transition-all duration-200 ${
@@ -379,7 +471,13 @@ const JavaScriptTestRunner = ({ initialCode }) => {
         hidden={activeTab !== 'code'}
         className={`transition-opacity duration-200 ${activeTab === 'code' ? 'opacity-100' : 'opacity-0 absolute'}`}
       >
-        {activeTab === 'code' && <CodeEditor code={code} onChange={handleCodeChange} />}
+        {activeTab === 'code' && (
+          <CodeEditor 
+            code={code} 
+            onChange={handleCodeChange} 
+            language={selectedLanguage}
+          />
+        )}
       </div>
       
       <div 
@@ -405,14 +503,16 @@ const JavaScriptTestRunner = ({ initialCode }) => {
       <button
         className="px-4 py-2 mb-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200 transform hover:scale-105"
         onClick={runTests}
-        disabled={isRunning}
+        disabled={isRunning || (selectedLanguage === 'python' && (!isPyodideReady || isPyodideLoading))}
         aria-busy={isRunning}
         style={{ 
-          opacity: isRunning ? 0.7 : 1,
+          opacity: isRunning || (selectedLanguage === 'python' && (!isPyodideReady || isPyodideLoading)) ? 0.7 : 1,
           boxShadow: !isRunning ? '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'
         }}
       >
-        {isRunning ? 'Running Tests...' : 'Run Tests'}
+        {isRunning ? 'Running Tests...' : 
+         (selectedLanguage === 'python' && isPyodideLoading) ? 'Loading Python...' : 
+         `Run Tests (${selectedLanguage === 'javascript' ? 'JS' : 'Python'})`}
       </button>
       
       <TestResults results={testResults} isRunning={isRunning} />

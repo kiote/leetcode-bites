@@ -22,6 +22,34 @@ export const CodeEditor = ({ code, onChange }) => {
       setTimeout(() => {
         e.target.selectionStart = e.target.selectionEnd = selectionStart + 1;
       }, 0);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      const { selectionStart } = e.target;
+      
+      // Find the start of the current line
+      const currentLineStart = code.lastIndexOf('\n', selectionStart - 1) + 1;
+      
+      // Calculate indentation of the current line
+      let indentation = '';
+      for (let i = currentLineStart; i < selectionStart && (code[i] === ' ' || code[i] === '\t'); i++) {
+        indentation += code[i];
+      }
+      
+      // Insert new line with the same indentation
+      const newValue = 
+        code.substring(0, selectionStart) + 
+        '\n' + indentation + 
+        code.substring(selectionStart);
+      
+      // Update with the correctly formatted string
+      onChange(newValue);
+      
+      // Set cursor position after indentation in the new line
+      const newCursorPosition = selectionStart + 1 + indentation.length;
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = newCursorPosition;
+      }, 0);
     }
   };
 

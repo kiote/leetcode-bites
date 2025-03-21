@@ -19,18 +19,18 @@ describe('App Component', () => {
     versionManager.getAppVersion.mockReturnValue(mockVersion);
     
     // Render the App component
-    const { container } = render(<App />);
+    render(<App />);
     
     // Check if the footer is in the document
     const footerElement = screen.getByTestId('app-version');
     expect(footerElement).toBeInTheDocument();
     expect(footerElement.textContent).toBe(`v${mockVersion}`);
     
-    // Check if the footer is visible (not hidden by CSS)
-    const footer = container.querySelector('.app-footer');
+    // Check if the footer is visible using getByTestId instead of direct DOM queries
+    const footer = screen.getByTestId('app-footer');
     expect(footer).toBeInTheDocument();
     
-    // Check for visibility using computed styles
+    // Check for styles using getComputedStyle (this is still valid)
     const footerStyles = window.getComputedStyle(footer);
     expect(footerStyles.display).not.toBe('none');
     expect(footerStyles.visibility).not.toBe('hidden');

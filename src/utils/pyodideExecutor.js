@@ -112,7 +112,8 @@ export const executePythonCode = async (code, functionName, inputs) => {
     };
   } catch (error) {
     const executionTime = performance.now() - startTime;
-    // Fix: throw proper Error object instead of plain object
-    throw new Error(error.message || String(error));
+    const errorWithTiming = new Error(error.message || String(error));
+    errorWithTiming.executionTime = executionTime;
+    throw errorWithTiming;
   }
 };

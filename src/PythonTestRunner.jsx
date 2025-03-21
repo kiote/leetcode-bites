@@ -7,7 +7,7 @@ import { TestResults } from './components/TestResults';
 import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 // Removed unused import for executeCode
-import { getAppVersion } from './utils/versionManager';
+// import { getAppVersion } from './utils/versionManager';
 import { usePyodide } from './hooks/usePyodide';
 
 // Removed unused APP_VERSION variable

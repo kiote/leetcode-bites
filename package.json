@@ -42,21 +42,8 @@
   "devDependencies": {
     "autoprefixer": "10.4.14",
     "postcss": "8.4.27",
-    "tailwindcss": "3.3.3",
-    "punycode2": "^2.3.1"
-  },
-  "overrides": {
-    "punycode": "npm:punycode2@^2.3.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "punycode": "npm:punycode2@^2.3.1"
-    },
-    "patchedDependencies": {
-      "punycode@*": "patches/punycode-patch.patch"
-    }
-  },
-  "resolutions": {
-    "punycode": "npm:punycode2@^2.3.1"
+    "punycode2": "^1.0.1",
+    "react-router-dom": "^7.4.0",
+    "tailwindcss": "3.3.3"
   }
 }

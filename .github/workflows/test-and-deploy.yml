@@ -58,6 +58,6 @@ jobs:
       if: github.ref == 'refs/heads/main'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
-        folder: dist  # or 'build' if you're using create-react-app
+        folder: build
         branch: gh-pages
         token: ${{ secrets.GITHUB_TOKEN }}

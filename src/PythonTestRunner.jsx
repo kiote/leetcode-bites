@@ -41,7 +41,34 @@ const sanitizeCode = (code) => {
 
 // Custom hook for console capture
 const useConsoleCapture = () => {
-  // ... existing code...
+  const [logs, setLogs] = useState([]);
+  
+  useEffect(() => {
+    // Save the original console.log
+    const originalConsoleLog = console.log;
+    
+    // Override console.log to capture logs
+    console.log = (...args) => {
+      // Call original console.log
+      originalConsoleLog(...args);
+      
+      // Convert args to a readable string
+      const logString = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      // Add to logs state
+      setLogs(prevLogs => [...prevLogs, logString]);
+    };
+    
+    // Cleanup: restore original console.log when component unmounts
+    return () => {
+      console.log = originalConsoleLog;
+    };
+  }, []);
+  
+  // Return the logs array
+  return logs;
 };
 
 const PythonTestRunner = ({ initialCode }) => {

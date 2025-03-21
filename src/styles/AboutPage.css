@@ -2,6 +2,7 @@
   min-height: 100vh;
   padding: 2rem;
   background-color: #f8f9fa;
+  text-align: left;
 }
 
 .about-container {
@@ -11,6 +12,7 @@
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
 }
 
 .about-page h1 {
@@ -22,6 +24,7 @@
 
 .about-section {
   margin-bottom: 2.5rem;
+  text-align: left;
 }
 
 .about-section h2 {
@@ -64,7 +67,7 @@
 
 .back-link-container {
   margin-top: 2rem;
-  text-align: center;
+  text-align: left;
 }
 
 .back-link {

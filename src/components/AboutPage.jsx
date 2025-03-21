@@ -38,10 +38,10 @@ const AboutPage = () => {
             Our platform provides an interactive coding environment where you can:
           </p>
           <ul>
-            <li>Tackle progressively challenging coding problems</li>
-            <li>Run your code directly in the browser</li>
-            <li>Get immediate feedback with test cases</li>
-            <li>Track your progress as you master more concepts</li>
+            <li>🚀 Tackle progressively challenging coding problems</li>
+            <li>⚡ Run your code directly in the browser</li>
+            <li>✅ Get immediate feedback with test cases</li>
+            <li>📈 Track your progress as you master more concepts</li>
           </ul>
           
           {/* Uncomment when you add the actual image */}
@@ -61,10 +61,10 @@ const AboutPage = () => {
             LeetCode Bites is built with modern web technologies:
           </p>
           <ul>
-            <li>React for our interactive UI</li>
-            <li>Pyodide for running Python code in the browser</li>
-            <li>Tailwind CSS for styling</li>
-            <li>Github Copilot / Claude 3.7 with thinking for code</li>
+            <li>⚛️ React for our interactive UI</li>
+            <li>🐍 Pyodide for running Python code in the browser</li>
+            <li>🎨 Tailwind CSS for styling</li>
+            <li>🤖 Github Copilot / Claude 3.7 with thinking for code</li>
           </ul>
         </section>
         

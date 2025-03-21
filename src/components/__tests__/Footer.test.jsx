@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Footer from './Footer';
-import * as versionManager from '../utils/versionManager';
+import Footer from '../Footer';
+import * as versionManager from '../../utils/versionManager';
 
 // Fix the test setup
-jest.mock('../utils/versionManager', () => ({
+jest.mock('../../utils/versionManager', () => ({
   getAppVersion: jest.fn()
 }));
 

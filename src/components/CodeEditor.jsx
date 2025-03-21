@@ -6,6 +6,25 @@ export const CodeEditor = ({ code, onChange }) => {
     onChange(e.target.value);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      
+      const { selectionStart, selectionEnd } = e.target;
+      const newValue = 
+        code.substring(0, selectionStart) + 
+        '\t' + 
+        code.substring(selectionEnd);
+      
+      onChange(newValue);
+      
+      // Set cursor position after the inserted tab
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = selectionStart + 1;
+      }, 0);
+    }
+  };
+
   return (
     <div className="w-full border border-gray-300 rounded-md bg-white">
       <div className="p-2 bg-gray-100 border-b border-gray-300 flex items-center justify-between">
@@ -15,6 +34,7 @@ export const CodeEditor = ({ code, onChange }) => {
       <textarea
         value={code}
         onChange={handleEditorChange}
+        onKeyDown={handleKeyDown}
         className="w-full h-96 p-4 font-mono text-sm focus:outline-none"
         style={{
           resize: 'none',

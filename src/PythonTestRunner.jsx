@@ -6,6 +6,7 @@ import { ConsoleOutput } from './components/ConsoleOutput';
 import { TestResults } from './components/TestResults';
 import { allTests } from './data/testCases';
 import { problems } from './data/problems';
+import mainProblem from './data/mainProblem';
 // Removed unused import for executeCode
 // import { getAppVersion } from './utils/versionManager';
 import { usePyodide } from './hooks/usePyodide';
@@ -238,14 +239,42 @@ const PythonTestRunner = ({ initialCode }) => {
       </div>
       
       {/* Main Problem Description */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <h3 className="font-bold mb-2 text-blue-800">Main Problem:</h3>
-        <p className="mb-2">This series of exercises will help you practice implementing common algorithms and data structures in Python. 
-        Complete each challenge to build your problem-solving skills and prepare for technical interviews.</p>
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-left">
+        <h3 className="font-bold mb-2 text-blue-800 text-left">{mainProblem.title}</h3>
+        <p className="mb-2 text-left">{mainProblem.description}</p>
         
-        <div className="mt-4 p-3 bg-white rounded border border-blue-100">
-          {/* ... existing code ... */}
-        </div>
+        {mainProblem.examples && mainProblem.examples.length > 0 && (
+          <div className="mt-3 text-left">
+            <h5 className="font-medium text-blue-600 text-left">Examples:</h5>
+            <div className="pl-2 mt-1 border-l-2 border-blue-200">
+              {mainProblem.examples.map((example) => (
+                <div key={example.id} className="mb-3">
+                  <p className="mb-1 text-left"><span className="font-medium">Example {example.id}:</span></p>
+                  <p className="mb-1 pl-2 text-left">Input: {example.input}</p>
+                  <p className="mb-1 pl-2 text-left">Output: {example.output}</p>
+                  {Array.isArray(example.explanation) ? (
+                    example.explanation.map((line, idx) => (
+                      <p key={idx} className="mb-1 pl-2 text-gray-600 text-sm text-left">{line}</p>
+                    ))
+                  ) : (
+                    <p className="mb-1 pl-2 text-gray-600 text-sm text-left">{example.explanation}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {mainProblem.constraints && mainProblem.constraints.length > 0 && (
+          <div className="mt-4 text-left">
+            <h5 className="font-medium text-blue-600 text-left">Constraints:</h5>
+            <ul className="list-disc pl-5 mt-1">
+              {mainProblem.constraints.map((constraint, index) => (
+                <li key={index} className="text-left" dangerouslySetInnerHTML={{ __html: constraint.replace(/\^(\d+)/g, '<sup>$1</sup>') }}></li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 p-4 bg-white border border-gray-300 rounded-md">

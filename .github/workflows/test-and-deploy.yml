@@ -10,73 +10,93 @@ permissions:
   contents: write
   pages: write
 
+# Prevent overlapping runs on the same branch.
+concurrency:
+  group: "test-and-deploy-${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
-  # --------------------------------------
+  # ----------------------------------------------------------------
   # 1) Test Job
-  # --------------------------------------
+  # ----------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          # If you need full git history for versioning/changelog, set to 0:
+          fetch-depth: 0
 
-      - name: Setup Node
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          # You can enable the built-in pnpm cache:
+          # Optionally enable built-in pnpm caching:
           # cache: 'pnpm'
 
-      - name: Setup PNPM
+      - name: Set up PNPM
         uses: pnpm/action-setup@v2
         with:
-          version: '8'
+          version: 8
+          # run_install: false
+
+      - name: Cache PNPM store
+        uses: actions/cache@v3
+        with:
+          # Some people prefer to dynamically retrieve the store path, e.g.:
+          #   run: echo "STORE_PATH=$(pnpm store path | tr -d '\n')" >> $GITHUB_OUTPUT
+          # Then use ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          # But a simpler approach is direct referencing ~/.pnpm-store:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        # Use --no-frozen-lockfile if you do NOT have a pnpm-lock.yaml, or it's not up to date.
+        # If you do commit a valid pnpm-lock.yaml, switch to "--frozen-lockfile".
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+  # ----------------------------------------------------------------
+  # 2) Deploy Job
+  # ----------------------------------------------------------------
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          # cache: 'pnpm'
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
           # run_install: false
 
       - name: Cache PNPM store
         uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Run tests
-        run: pnpm test
-
-  # --------------------------------------
-  # 2) Deploy Job
-  # --------------------------------------
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          # cache: 'pnpm'
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: '8'
-
-      - name: Cache PNPM store
-        uses: actions/cache@v3
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
         run: pnpm build

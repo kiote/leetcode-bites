@@ -1,22 +1,29 @@
 /**
- * Safely executes user code and returns the result
+ * Safely executes user Python code and returns the result
+ * @param {string} code - The user's Python code
+ * @param {string} functionName - The name of the function to execute
+ * @param {Array} inputs - The inputs to the function
  */
 export const executeCode = (code, functionName, inputs) => {
   const start = performance.now();
   
-  // Construct the code to be executed
-  const userCode = `
+  // Construct the Python code to be executed
+  const pythonCode = `
     ${code}
-    return ${functionName}(${inputs.map(i => JSON.stringify(i)).join(', ')});
+    import json
+    result = ${functionName}(${inputs.map(i => JSON.stringify(i)).join(', ')})
+    print(json.dumps(result))
   `;
   
   try {
-    // Use Function constructor for sandboxed execution
-    // Note: This is still not completely secure for untrusted code
-    const output = (new Function(userCode))();
-    const executionTime = performance.now() - start;
+    // This is a placeholder - actual implementation would depend on your Pyodide setup
+    // You should replace this with your actual Pyodide execution code
+    throw new Error('Python execution requires a properly configured Pyodide interpreter');
     
-    return { output, executionTime };
+    // Example of how it might work with a hypothetical executePython function:
+    // const output = await executePython(pythonCode);
+    // const executionTime = performance.now() - start;
+    // return { output, executionTime };
   } catch (error) {
     throw new Error(`Execution error: ${error.message}`);
   }

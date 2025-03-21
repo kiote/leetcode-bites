@@ -11,7 +11,7 @@ function App() {
       paddingBottom: '60px' // Increased padding to ensure space for footer
     }}>
       <header className="App-header">
-        <h1>Master leetcode-stype interviews</h1>
+        <h1>Master leetcode-style interviews</h1>
       </header>
       <main className="App-main">
         <PythonTestRunner />

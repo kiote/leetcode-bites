@@ -6,12 +6,11 @@ import { ConsoleOutput } from './components/ConsoleOutput';
 import { TestResults } from './components/TestResults';
 import { allTests } from './data/testCases';
 import { problems } from './data/problems';
-import { executeCode } from './utils/codeExecutor';
+// Removed unused import for executeCode
 import { getAppVersion } from './utils/versionManager';
 import { usePyodide } from './hooks/usePyodide';
 
-// Get the application version dynamically
-const APP_VERSION = getAppVersion();
+// Removed unused APP_VERSION variable
 
 // Utility function to sanitize code input (especially from mobile devices)
 const sanitizeCode = (code) => {

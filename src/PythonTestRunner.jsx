@@ -55,6 +55,9 @@ const PythonTestRunner = ({ initialCode }) => {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   
+  // Add state for collapsible main problem
+  const [isMainProblemExpanded, setIsMainProblemExpanded] = useState(true);
+  
   // Store code for all problems
   const [allProblemsCode, setAllProblemsCode] = useState(() => {
     // Load saved code from localStorage if available
@@ -211,6 +214,11 @@ const PythonTestRunner = ({ initialCode }) => {
     }
   }, [currentProblemIndex, canGoToNextProblem]);
   
+  // Add toggle function for main problem
+  const toggleMainProblem = useCallback(() => {
+    setIsMainProblemExpanded(prev => !prev);
+  }, []);
+  
   return (
     <div className="flex flex-col w-full max-w-4xl p-4 bg-gray-100 rounded-lg">
       {/* Problem Navigation */}
@@ -240,39 +248,54 @@ const PythonTestRunner = ({ initialCode }) => {
       
       {/* Main Problem Description */}
       <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-left">
-        <h3 className="font-bold mb-2 text-blue-800 text-left">{mainProblem.title}</h3>
-        <p className="mb-2 text-left">{mainProblem.description}</p>
+        <div 
+          className="flex justify-between items-center cursor-pointer" 
+          onClick={toggleMainProblem}
+          aria-expanded={isMainProblemExpanded}
+          data-testid="main-problem-header"
+        >
+          <h3 className="font-bold mb-2 text-blue-800 text-left">{mainProblem.title}</h3>
+          <span className="text-blue-800">
+            {isMainProblemExpanded ? '▼' : '▶'}
+          </span>
+        </div>
         
-        {mainProblem.examples && mainProblem.examples.length > 0 && (
-          <div className="mt-3 text-left">
-            <h5 className="font-medium text-blue-600 text-left">Examples:</h5>
-            <div className="pl-2 mt-1 border-l-2 border-blue-200">
-              {mainProblem.examples.map((example) => (
-                <div key={example.id} className="mb-3">
-                  <p className="mb-1 text-left"><span className="font-medium">Example {example.id}:</span></p>
-                  <p className="mb-1 pl-2 text-left">Input: {example.input}</p>
-                  <p className="mb-1 pl-2 text-left">Output: {example.output}</p>
-                  {Array.isArray(example.explanation) ? (
-                    example.explanation.map((line, idx) => (
-                      <p key={idx} className="mb-1 pl-2 text-gray-600 text-sm text-left">{line}</p>
-                    ))
-                  ) : (
-                    <p className="mb-1 pl-2 text-gray-600 text-sm text-left">{example.explanation}</p>
-                  )}
+        {isMainProblemExpanded && (
+          <div data-testid="main-problem-content">
+            <p className="mb-2 text-left">{mainProblem.description}</p>
+            
+            {mainProblem.examples && mainProblem.examples.length > 0 && (
+              <div className="mt-3 text-left">
+                <h5 className="font-medium text-blue-600 text-left">Examples:</h5>
+                <div className="pl-2 mt-1 border-l-2 border-blue-200">
+                  {mainProblem.examples.map((example) => (
+                    <div key={example.id} className="mb-3">
+                      <p className="mb-1 text-left"><span className="font-medium">Example {example.id}:</span></p>
+                      <p className="mb-1 pl-2 text-left">Input: {example.input}</p>
+                      <p className="mb-1 pl-2 text-left">Output: {example.output}</p>
+                      {Array.isArray(example.explanation) ? (
+                        example.explanation.map((line, idx) => (
+                          <p key={idx} className="mb-1 pl-2 text-gray-600 text-sm text-left">{line}</p>
+                        ))
+                      ) : (
+                        <p className="mb-1 pl-2 text-gray-600 text-sm text-left">{example.explanation}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {mainProblem.constraints && mainProblem.constraints.length > 0 && (
-          <div className="mt-4 text-left">
-            <h5 className="font-medium text-blue-600 text-left">Constraints:</h5>
-            <ul className="list-disc pl-5 mt-1">
-              {mainProblem.constraints.map((constraint, index) => (
-                <li key={index} className="text-left" dangerouslySetInnerHTML={{ __html: constraint.replace(/\^(\d+)/g, '<sup>$1</sup>') }}></li>
-              ))}
-            </ul>
+              </div>
+            )}
+            
+            {mainProblem.constraints && mainProblem.constraints.length > 0 && (
+              <div className="mt-4 text-left">
+                <h5 className="font-medium text-blue-600 text-left">Constraints:</h5>
+                <ul className="list-disc pl-5 mt-1">
+                  {mainProblem.constraints.map((constraint, index) => (
+                    <li key={index} className="text-left" dangerouslySetInnerHTML={{ __html: constraint.replace(/\^(\d+)/g, '<sup>$1</sup>') }}></li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

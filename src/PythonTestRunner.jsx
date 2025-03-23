@@ -176,12 +176,38 @@ const PythonTestRunner = ({ initialCode }) => {
               addPythonLogs(stdout);
             }
             
-            const passed = output === test.expectedOutput; // Using loose equality to handle type differences
+            // For array comparisons, convert to JSON strings to ensure proper comparison
+            let passed = false;
+            let error = null;
+            
+            if (Array.isArray(test.expectedOutput)) {
+              // If output is empty object but expected is array, this is a serialization error
+              if (output && typeof output === 'object' && Object.keys(output).length === 0) {
+                addPythonLogs("Warning: Function returned empty object instead of array. Check return type.");
+                error = `Expected an array, but got an empty object {}. Make sure you're returning a list, not a set or other type.`;
+              } else {
+                // Try to compare arrays by converting to JSON strings
+                const expectedJson = JSON.stringify(test.expectedOutput.sort());
+                const actualJson = Array.isArray(output) ? 
+                  JSON.stringify([...output].sort()) : 
+                  JSON.stringify(output);
+                passed = expectedJson === actualJson;
+                if (!passed) {
+                  error = `Expected ${expectedJson}, but got ${actualJson}`;
+                }
+              }
+            } else {
+              // For non-array types, use loose equality
+              passed = output === test.expectedOutput;
+              if (!passed) {
+                error = `Expected ${test.expectedOutput}, but got ${output}`;
+              }
+            }
             
             return {
               ...test,
               passed,
-              error: passed ? null : `Expected ${test.expectedOutput}, but got ${output}`,
+              error,
               output,
               stdout,
               executionTime

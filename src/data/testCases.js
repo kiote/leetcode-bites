@@ -55,7 +55,7 @@ export const allTests = {
     {
       id: 1,
       name: 'Find all unique substrings in short string',
-      testCode: 'JSON.stringify(sorted(find_all_unique_substrings("abc"))) === JSON.stringify(sorted(["a", "ab", "abc", "b", "bc", "c"]))',
+      testCode: 'sorted(find_all_unique_substrings("abc")) == sorted(["a", "ab", "abc", "b", "bc", "c"])',
       functionName: 'find_all_unique_substrings',
       inputs: ['abc'],
       expectedOutput: ["a", "ab", "abc", "b", "bc", "c"]
@@ -63,7 +63,7 @@ export const allTests = {
     {
       id: 2,
       name: 'Find all unique substrings with duplicates',
-      testCode: 'JSON.stringify(sorted(find_all_unique_substrings("abb"))) === JSON.stringify(sorted(["a", "ab", "b"]))',
+      testCode: 'sorted(find_all_unique_substrings("abb")) == sorted(["a", "ab", "b"])',
       functionName: 'find_all_unique_substrings',
       inputs: ['abb'],
       expectedOutput: ["a", "ab", "b"]
@@ -71,7 +71,7 @@ export const allTests = {
     {
       id: 3,
       name: 'Test with empty string',
-      testCode: 'find_all_unique_substrings("").length === 0',
+      testCode: 'find_all_unique_substrings("") == []',
       functionName: 'find_all_unique_substrings',
       inputs: [''],
       expectedOutput: []

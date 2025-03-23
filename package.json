@@ -20,7 +20,7 @@
     "predeploy": "pnpm run build",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "https://kiote.github.io/leetcode-bites",
+  "homepage": "https://leetcode-bites.dev",
   "eslintConfig": {
     "extends": [
       "react-app",

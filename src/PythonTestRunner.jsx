@@ -4,61 +4,18 @@ import { CodeEditor } from './components/CodeEditor';
 import { TestCases } from './components/TestCases';
 import { ConsoleOutput } from './components/ConsoleOutput';
 import { TestResults } from './components/TestResults';
+import ProblemNavigation from './components/ProblemNavigation';
+import MainProblemDescription from './components/MainProblemDescription';
+import PyodideStatus from './components/PyodideStatus';
+import TabPanel from './components/TabPanel';
+import RunButton from './components/RunButton';
 import { allTests } from './data/testCases';
 import { problems } from './data/problems';
 import mainProblem from './data/mainProblem';
-// Removed unused import for executeCode
-// import { getAppVersion } from './utils/versionManager';
 import { usePyodide } from './hooks/usePyodide';
-
-// Removed unused APP_VERSION variable
-
-// Utility function to sanitize code input (especially from mobile devices)
-const sanitizeCode = (code) => {
-  if (!code) return '';
-  
-  // Create a map of problematic characters to their proper coding equivalents
-  const charMap = {
-    // ... existing code...
-  };
-  
-  // Replace characters using the map
-  let sanitized = code;
-  for (const [problematic, replacement] of Object.entries(charMap)) {
-    sanitized = sanitized.split(problematic).join(replacement);
-  }
-  
-  // Additional generic replacements for any remaining smart quotes or similar characters
-  sanitized = sanitized
-    .replace(/[""]/g, '"')
-    .replace(/['']/g, "'")
-    .replace(/[—–]/g, '-')
-    .replace(/[∶]/g, ':')
-    .replace(/[；]/g, ';');
-  
-  return sanitized;
-};
-
-// Simplified hook for Python console capture only
-const usePythonConsoleCapture = () => {
-  const [logs, setLogs] = useState([]);
-  
-  // Function to add Python stdout to logs
-  const addPythonLogs = useCallback((stdout) => {
-    if (stdout && stdout.trim()) {
-      // Split by newlines to handle multiple print statements
-      const pythonLogs = stdout.split('\n').filter(log => log.trim());
-      
-      setLogs(prevLogs => [
-        ...prevLogs,
-        ...pythonLogs.map(content => ({ content }))
-      ]);
-    }
-  }, []);
-  
-  // Return the logs array and the function to add Python logs
-  return { logs, addPythonLogs };
-};
+import usePythonConsoleCapture from './hooks/usePythonConsoleCapture';
+import useTestRunner from './hooks/useTestRunner';
+import { sanitizeCode } from './utils/codeUtils';
 
 const PythonTestRunner = ({ initialCode }) => {
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
@@ -82,13 +39,13 @@ const PythonTestRunner = ({ initialCode }) => {
   });
   
   const [code, setCode] = useState('');
-  const [testResults, setTestResults] = useState([]);
-  const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState('code');
-  const { logs: consoleLogs, addPythonLogs } = usePythonConsoleCapture();
   
   // Initialize Pyodide
   const { isLoading: isPyodideLoading, isReady: isPyodideReady, error: pyodideError, runPython } = usePyodide();
+  
+  // Use extracted hooks
+  const { logs: consoleLogs, addPythonLogs } = usePythonConsoleCapture();
   
   // Track the current problem ID to detect problem changes
   const previousProblemIdRef = useRef(null);
@@ -103,7 +60,6 @@ const PythonTestRunner = ({ initialCode }) => {
       const savedProblemCode = allProblemsCode[currentProblemId];
       
       setCode(savedProblemCode || currentProblem.initialCode);
-      setTestResults([]);
       
       previousProblemIdRef.current = currentProblemId;
     }
@@ -135,6 +91,25 @@ const PythonTestRunner = ({ initialCode }) => {
   // Memoize tests for the current problem
   const tests = useMemo(() => allTests[currentProblem.id], [currentProblem.id]);
   
+  // Handle test completion
+  const handleTestsComplete = useCallback((results) => {
+    // Check if all tests passed and update solved problems
+    if (results.every(result => result.passed)) {
+      setSolvedProblems(prev => new Set([...prev, currentProblem.id]));
+    }
+  }, [currentProblem.id, setSolvedProblems]);
+  
+  // Use the test runner hook
+  const { runTests, isRunning, testResults } = useTestRunner({
+    code,
+    tests,
+    currentProblemId: currentProblem.id,
+    runPython,
+    isPyodideReady,
+    addPythonLogs,
+    onTestsComplete: handleTestsComplete
+  });
+  
   // Check if all tests pass
   const allTestsPass = useMemo(() => {
     if (testResults.length === 0) return false;
@@ -145,104 +120,6 @@ const PythonTestRunner = ({ initialCode }) => {
   const canGoToNextProblem = useMemo(() => {
     return allTestsPass || solvedProblems.has(currentProblem.id);
   }, [allTestsPass, solvedProblems, currentProblem.id]);
-  
-  // Extract run tests logic to a callback
-  const runTests = useCallback(() => {
-    setIsRunning(true);
-    setTestResults([]);
-    
-    // Sanitize the code before execution
-    const sanitizedCode = sanitizeCode(code);
-    
-    // Update editor with sanitized code if different from original
-    if (sanitizedCode !== code) {
-      console.debug('Auto-fixed code formatting issues');
-      setCode(sanitizedCode);
-    }
-    
-    // Use setTimeout to prevent UI blocking during test execution
-    setTimeout(async () => {
-      try {
-        if (!isPyodideReady) {
-          throw new Error('Pyodide is not ready yet. Please wait for it to load completely.');
-        }
-        
-        const results = await Promise.all(tests.map(async (test) => {
-          try {
-            const { output, stdout, executionTime } = await runPython(sanitizedCode, test.functionName, test.inputs);
-            
-            // Add Python stdout to console logs
-            if (stdout) {
-              addPythonLogs(stdout);
-            }
-            
-            // For array comparisons, convert to JSON strings to ensure proper comparison
-            let passed = false;
-            let error = null;
-            
-            if (Array.isArray(test.expectedOutput)) {
-              // If output is empty object but expected is array, this is a serialization error
-              if (output && typeof output === 'object' && Object.keys(output).length === 0) {
-                addPythonLogs("Warning: Function returned empty object instead of array. Check return type.");
-                error = `Expected an array, but got an empty object {}. Make sure you're returning a list, not a set or other type.`;
-              } else {
-                // Try to compare arrays by converting to JSON strings
-                const expectedJson = JSON.stringify(test.expectedOutput.sort());
-                const actualJson = Array.isArray(output) ? 
-                  JSON.stringify([...output].sort()) : 
-                  JSON.stringify(output);
-                passed = expectedJson === actualJson;
-                if (!passed) {
-                  error = `Expected ${expectedJson}, but got ${actualJson}`;
-                }
-              }
-            } else {
-              // For non-array types, use loose equality
-              passed = output === test.expectedOutput;
-              if (!passed) {
-                error = `Expected ${test.expectedOutput}, but got ${output}`;
-              }
-            }
-            
-            return {
-              ...test,
-              passed,
-              error,
-              output,
-              stdout,
-              executionTime
-            };
-          } catch (e) {
-            return {
-              ...test,
-              passed: false,
-              error: e.error || e.toString(),
-              output: 'Error',
-              executionTime: e.executionTime || 0
-            };
-          }
-        }));
-        
-        setTestResults(results);
-        
-        // Check if all tests passed and update solved problems
-        if (results.every(result => result.passed)) {
-          setSolvedProblems(prev => new Set([...prev, currentProblem.id]));
-        }
-      } catch (error) {
-        console.error("Test execution error:", error);
-        setTestResults([{
-          functionName: "Error",
-          passed: false,
-          error: error.toString(),
-          output: 'Error running tests',
-          executionTime: 0
-        }]);
-      } finally {
-        setIsRunning(false);
-      }
-    }, 0);
-  }, [code, tests, currentProblem.id, runPython, isPyodideReady, addPythonLogs]);
   
   // Tab selection handler
   const handleTabChange = useCallback((tab) => {
@@ -267,86 +144,31 @@ const PythonTestRunner = ({ initialCode }) => {
     setIsMainProblemExpanded(prev => !prev);
   }, []);
   
+  // Define tabs for the TabPanel component
+  const tabs = [
+    { id: 'code', label: 'Code Editor' },
+    { id: 'tests', label: 'Test Cases' },
+    { id: 'console', label: 'Console' }
+  ];
+  
   return (
     <div className="flex flex-col w-full max-w-4xl p-4 bg-gray-100 rounded-lg">
       {/* Problem Navigation */}
-      <div className="mb-4 flex justify-between items-center">
-        <button 
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200"
-          onClick={goToPreviousProblem}
-          disabled={currentProblemIndex === 0}
-          style={{ opacity: currentProblemIndex === 0 ? 0.5 : 1 }}
-        >
-          Previous
-        </button>
-        <div className="text-center">
-          <h2 className="text-xl font-bold">{currentProblem.title}</h2>
-          <p className="text-sm text-gray-600">Problem {currentProblemIndex + 1} of {problems.length}</p>
-        </div>
-        <button 
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200"
-          onClick={goToNextProblem}
-          disabled={currentProblemIndex === problems.length - 1 || !canGoToNextProblem}
-          title={!canGoToNextProblem ? "Solve this problem first to continue" : ""}
-          style={{ opacity: (currentProblemIndex === problems.length - 1 || !canGoToNextProblem) ? 0.5 : 1 }}
-        >
-          Next
-        </button>
-      </div>
+      <ProblemNavigation
+        currentProblem={currentProblem}
+        currentProblemIndex={currentProblemIndex}
+        totalProblems={problems.length}
+        canGoToNextProblem={canGoToNextProblem}
+        onPrevious={goToPreviousProblem}
+        onNext={goToNextProblem}
+      />
       
       {/* Main Problem Description */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-left">
-        <div 
-          className="flex justify-between items-center cursor-pointer" 
-          onClick={toggleMainProblem}
-          aria-expanded={isMainProblemExpanded}
-          data-testid="main-problem-header"
-        >
-          <h3 className="font-bold mb-2 text-blue-800 text-left">{mainProblem.title}</h3>
-          <span className="text-blue-800">
-            {isMainProblemExpanded ? '▼' : '▶'}
-          </span>
-        </div>
-        
-        {isMainProblemExpanded && (
-          <div data-testid="main-problem-content">
-            <p className="mb-2 text-left">{mainProblem.description}</p>
-            
-            {mainProblem.examples && mainProblem.examples.length > 0 && (
-              <div className="mt-3 text-left">
-                <h5 className="font-medium text-blue-600 text-left">Examples:</h5>
-                <div className="pl-2 mt-1 border-l-2 border-blue-200">
-                  {mainProblem.examples.map((example) => (
-                    <div key={example.id} className="mb-3">
-                      <p className="mb-1 text-left"><span className="font-medium">Example {example.id}:</span></p>
-                      <p className="mb-1 pl-2 text-left">Input: {example.input}</p>
-                      <p className="mb-1 pl-2 text-left">Output: {example.output}</p>
-                      {Array.isArray(example.explanation) ? (
-                        example.explanation.map((line, idx) => (
-                          <p key={idx} className="mb-1 pl-2 text-gray-600 text-sm text-left">{line}</p>
-                        ))
-                      ) : (
-                        <p className="mb-1 pl-2 text-gray-600 text-sm text-left">{example.explanation}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {mainProblem.constraints && mainProblem.constraints.length > 0 && (
-              <div className="mt-4 text-left">
-                <h5 className="font-medium text-blue-600 text-left">Constraints:</h5>
-                <ul className="list-disc pl-5 mt-1">
-                  {mainProblem.constraints.map((constraint, index) => (
-                    <li key={index} className="text-left" dangerouslySetInnerHTML={{ __html: constraint.replace(/\^(\d+)/g, '<sup>$1</sup>') }}></li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <MainProblemDescription
+        mainProblem={mainProblem}
+        isExpanded={isMainProblemExpanded}
+        onToggle={toggleMainProblem}
+      />
 
       <div className="mb-4 p-4 bg-white border border-gray-300 rounded-md">
         <h3 className="font-bold mb-2">Current task:</h3>
@@ -354,120 +176,64 @@ const PythonTestRunner = ({ initialCode }) => {
       </div>
       
       {/* Pyodide Status Message */}
-      <div className={`mb-4 p-2 rounded-md ${
-        pyodideError ? 'bg-red-100 text-red-700' : 
-        isPyodideLoading ? 'bg-yellow-100 text-yellow-700' : 
-        isPyodideReady ? 'bg-green-100 text-green-700' : ''
-      }`}>
-        {pyodideError ? (
-          <p>Error loading Python environment: {pyodideError}</p>
-        ) : isPyodideLoading ? (
-          <p>Loading Python environment... This may take a few moments.</p>
-        ) : isPyodideReady ? (
-          <p>Python environment ready!</p>
-        ) : null}
-      </div>
+      <PyodideStatus
+        isLoading={isPyodideLoading}
+        isReady={isPyodideReady}
+        error={pyodideError}
+      />
       
-      <div className="flex mb-4" role="tablist">
-        <button 
-          className={`px-4 py-2 mr-2 rounded-t-lg transition-all duration-200 ${
-            activeTab === 'code' 
-            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
-            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
-          }`}
-          onClick={() => handleTabChange('code')}
-          role="tab"
-          aria-selected={activeTab === 'code'}
-          aria-controls="code-panel"
-          id="code-tab"
-        >
-          Code Editor
-        </button>
-        <button 
-          className={`px-4 py-2 mr-2 rounded-t-lg transition-all duration-200 ${
-            activeTab === 'tests' 
-            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
-            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
-          }`}
-          onClick={() => handleTabChange('tests')}
-          role="tab"
-          aria-selected={activeTab === 'tests'}
-          aria-controls="tests-panel"
-          id="tests-tab"
-        >
-          Test Cases
-        </button>
-        <button 
-          className={`px-4 py-2 rounded-t-lg transition-all duration-200 ${
-            activeTab === 'console' 
-            ? 'bg-white border-t border-l border-r border-gray-300 font-semibold' 
-            : 'bg-gray-300 text-gray-600 hover:bg-gray-200'
-          }`}
-          onClick={() => handleTabChange('console')}
-          role="tab"
-          aria-selected={activeTab === 'console'}
-          aria-controls="console-panel"
-          id="console-tab"
-        >
-          Console
-        </button>
-      </div>
-      
-      <div 
-        role="tabpanel" 
-        id="code-panel" 
-        aria-labelledby="code-tab" 
-        hidden={activeTab !== 'code'}
-        className={`transition-opacity duration-200 ${activeTab === 'code' ? 'opacity-100' : 'opacity-0 absolute'}`}
+      {/* Tab Panel */}
+      <TabPanel
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
       >
-        {activeTab === 'code' && (
-          <CodeEditor 
-            code={code} 
-            onChange={handleCodeChange} 
-            language="python"
-          />
-        )}
-      </div>
+        <div 
+          role="tabpanel" 
+          id="code-panel" 
+          aria-labelledby="code-tab" 
+          hidden={activeTab !== 'code'}
+          className={`transition-opacity duration-200 ${activeTab === 'code' ? 'opacity-100' : 'opacity-0 absolute'}`}
+        >
+          {activeTab === 'code' && (
+            <CodeEditor 
+              code={code} 
+              onChange={handleCodeChange} 
+              language="python"
+            />
+          )}
+        </div>
+        
+        <div 
+          role="tabpanel" 
+          id="tests-panel" 
+          aria-labelledby="tests-tab" 
+          hidden={activeTab !== 'tests'}
+          className={`transition-opacity duration-200 ${activeTab === 'tests' ? 'opacity-100' : 'opacity-0 absolute'}`}
+        >
+          {activeTab === 'tests' && <TestCases tests={tests} />}
+        </div>
+        
+        <div 
+          role="tabpanel" 
+          id="console-panel" 
+          aria-labelledby="console-tab" 
+          hidden={activeTab !== 'console'}
+          className={`transition-opacity duration-200 ${activeTab === 'console' ? 'opacity-100' : 'opacity-0 absolute'}`}
+        >
+          {activeTab === 'console' && <ConsoleOutput logs={consoleLogs} />}
+        </div>
+      </TabPanel>
       
-      <div 
-        role="tabpanel" 
-        id="tests-panel" 
-        aria-labelledby="tests-tab" 
-        hidden={activeTab !== 'tests'}
-        className={`transition-opacity duration-200 ${activeTab === 'tests' ? 'opacity-100' : 'opacity-0 absolute'}`}
-      >
-        {activeTab === 'tests' && <TestCases tests={tests} />}
-      </div>
-      
-      <div 
-        role="tabpanel" 
-        id="console-panel" 
-        aria-labelledby="console-tab" 
-        hidden={activeTab !== 'console'}
-        className={`transition-opacity duration-200 ${activeTab === 'console' ? 'opacity-100' : 'opacity-0 absolute'}`}
-      >
-        {activeTab === 'console' && <ConsoleOutput logs={consoleLogs} />}
-      </div>
-      
-      <button
-        className="px-4 py-2 mb-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200 transform hover:scale-105"
+      {/* Run Button */}
+      <RunButton
         onClick={runTests}
-        disabled={isRunning || !isPyodideReady || isPyodideLoading}
-        aria-busy={isRunning}
-        style={{ 
-          opacity: isRunning || !isPyodideReady || isPyodideLoading ? 0.7 : 1,
-          boxShadow: !isRunning ? '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'
-        }}
-      >
-        {isRunning ? 'Running Tests...' : 
-         isPyodideLoading ? 'Loading Python...' : 
-         'Run Python Tests'}
-      </button>
+        isRunning={isRunning}
+        isPyodideLoading={isPyodideLoading}
+        isPyodideReady={isPyodideReady}
+      />
       
       <TestResults results={testResults} isRunning={isRunning} />
-      
-      {/* ... existing code ... */}
-      
     </div>
   );
 };

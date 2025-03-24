@@ -64,9 +64,10 @@ export const initializePyodide = async () => {
  * @param {string} code - The Python code to execute
  * @param {string} functionName - Name of function to call
  * @param {Array} inputs - Arguments to pass to the function
+ * @param {any} expectedOutput - Expected output to compare against
  * @returns {Object} - Result of execution including output and execution time
  */
-export const executePythonCode = async (code, functionName, inputs) => {
+export const executePythonCode = async (code, functionName, inputs, expectedOutput) => {
   const startTime = performance.now();
   
   try {
@@ -105,10 +106,24 @@ export const executePythonCode = async (code, functionName, inputs) => {
     
     const executionTime = performance.now() - startTime;
     
+    // Check if the output matches the expected output
+    let testsPassed = null;
+    if (expectedOutput !== undefined) {
+      // Store the result in Python global scope
+      pyodide.globals.set('_function_result', result);
+      
+      // Convert expectedOutput to a Python object using Pyodide's conversion
+      pyodide.globals.set('_expected_output', pyodide.toPy(expectedOutput));
+      
+      // Compare in Python for accuracy
+      testsPassed = pyodide.runPython(`_function_result == _expected_output`);
+    }
+    
     return {
       output: result,
       stdout,
-      executionTime
+      executionTime,
+      testsPassed
     };
   } catch (error) {
     const executionTime = performance.now() - startTime;

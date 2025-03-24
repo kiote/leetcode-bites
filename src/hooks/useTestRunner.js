@@ -3,8 +3,7 @@ import { sanitizeCode } from '../utils/codeUtils';
 
 const useTestRunner = ({ 
   code, 
-  tests, 
-  currentProblemId, 
+  tests,
   runPython, 
   isPyodideReady,
   addPythonLogs,
@@ -29,46 +28,30 @@ const useTestRunner = ({
         
         const results = await Promise.all(tests.map(async (test) => {
           try {
-            const { output, stdout, executionTime } = await runPython(sanitizedCode, test.functionName, test.inputs);
+            // Pass the expected output to runPython
+            const { output, stdout, executionTime, testsPassed } = await runPython(
+              sanitizedCode, 
+              test.functionName, 
+              test.inputs, 
+              test.expectedOutput
+            );
             
             // Add Python stdout to console logs
             if (stdout) {
               addPythonLogs(stdout);
             }
             
-            // For array comparisons, convert to JSON strings to ensure proper comparison
-            let passed = false;
             let error = null;
-
-            console.log("Test output:", output);
-            
-            if (Array.isArray(test.expectedOutput)) {
-              // If output is empty object but expected is array, this is a serialization error
-              if (output && typeof output === 'object' && Object.keys(output).length === 0) {
-                addPythonLogs("Warning: Function returned empty object instead of array. Check return type.");
-                error = `Expected an array, but got an empty object {}. Make sure you're returning a list, not a set or other type.`;
-              } else {
-                // Try to compare arrays by converting to JSON strings
-                const expectedJson = JSON.stringify(test.expectedOutput.sort());
-                const actualJson = Array.isArray(output) ? 
-                  JSON.stringify([...output].sort()) : 
-                  JSON.stringify(output);
-                passed = expectedJson === actualJson;
-                if (!passed) {
-                  error = `Expected ${expectedJson}, but got ${actualJson}`;
-                }
-              }
-            } else {
-              // For non-array types, use loose equality
-              passed = output === test.expectedOutput;
-              if (!passed) {
-                error = `Expected ${test.expectedOutput}, but got ${output}`;
-              }
+            if (testsPassed === false) {
+              // Generate error message for failed test
+              const expectedStr = JSON.stringify(test.expectedOutput);
+              const actualStr = JSON.stringify(output);
+              error = `Expected ${expectedStr}, but got ${actualStr}`;
             }
             
             return {
               ...test,
-              passed,
+              passed: testsPassed,
               error,
               output,
               stdout,
@@ -104,7 +87,7 @@ const useTestRunner = ({
         setIsRunning(false);
       }
     }, 0);
-  }, [code, tests, runPython, isPyodideReady, addPythonLogs, onTestsComplete]); // Removed currentProblemId
+  }, [code, tests, runPython, isPyodideReady, addPythonLogs, onTestsComplete]);
 
   return { runTests, isRunning, testResults };
 };

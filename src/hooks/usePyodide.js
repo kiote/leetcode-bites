@@ -44,13 +44,13 @@ export const usePyodide = () => {
   }, [isReady]);
   
   // Execute Python code
-  const runPython = useCallback(async (code, functionName, inputs) => {
+  const runPython = useCallback(async (code, functionName, inputs, expectedOutput) => {
     if (!isReady) {
       throw new Error('Pyodide is not ready yet');
     }
     
     try {
-      return await executePythonCode(code, functionName, inputs);
+      return await executePythonCode(code, functionName, inputs, expectedOutput);
     } catch (err) {
       throw err;
     }

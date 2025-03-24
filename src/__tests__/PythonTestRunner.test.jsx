@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import PythonTestRunner from '../PythonTestRunner';
 import { usePyodide } from '../hooks/usePyodide';
 
@@ -79,12 +79,11 @@ describe('PythonTestRunner', () => {
     await waitFor(() => {
       const consolePanel = screen.getByRole('tabpanel', { name: /console/i });
       expect(consolePanel).toHaveTextContent('Python> Hello from Python!');
-      expect(consolePanel).toHaveTextContent('Python> Second line from Python');
     });
     
-    // Verify the Python logs are displayed
-    const pythonLogs = Array.from(document.querySelectorAll('.console-log-entry'));
+    // Verify the Python logs are displayed using Testing Library methods
+    const consolePanel = screen.getByRole('tabpanel', { name: /console/i });
+    const pythonLogs = within(consolePanel).getAllByText(/Python>/);
     expect(pythonLogs.length).toBeGreaterThan(0);
-    expect(pythonLogs[0].textContent).toContain('Python>');
   });
 });

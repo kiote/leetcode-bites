@@ -39,6 +39,8 @@ const useTestRunner = ({
             // For array comparisons, convert to JSON strings to ensure proper comparison
             let passed = false;
             let error = null;
+
+            console.log("Test output:", output);
             
             if (Array.isArray(test.expectedOutput)) {
               // If output is empty object but expected is array, this is a serialization error
@@ -102,7 +104,7 @@ const useTestRunner = ({
         setIsRunning(false);
       }
     }, 0);
-  }, [code, tests, currentProblemId, runPython, isPyodideReady, addPythonLogs, onTestsComplete]);
+  }, [code, tests, runPython, isPyodideReady, addPythonLogs, onTestsComplete]); // Removed currentProblemId
 
   return { runTests, isRunning, testResults };
 };

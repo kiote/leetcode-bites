@@ -15,7 +15,7 @@ export const TestCases = ({ tests }) => {
           <p className="text-sm text-gray-600">
             Function: <span className="font-mono font-semibold">{test.functionName}</span>, 
             Inputs: <span className="font-mono">{test.inputs.join(', ')}</span>, 
-            Expected: <span className="font-mono font-semibold">{test.expectedOutput}</span>
+            Expected: <span className="font-mono font-semibold">{JSON.stringify(test.expectedOutput)}</span>
           </p>
         </div>
       ))}

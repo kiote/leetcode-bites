@@ -14,11 +14,14 @@ const AboutPage = () => {
         <h1>About LeetCode Bites</h1>
         
         <section className="about-section">
-          <h2>Our Mission</h2>
+          <h2>What is that?</h2>
           <p>
-            LeetCode Bites aims to make algorithm practice accessible and engaging for 
-            developers of all levels. We break down complex problems into manageable, 
-            bite-sized exercises that help you build confidence and skill.
+            LeetCode problems are hard. Sometimes, even medium problems can be tricky.
+            Here, we provide a platform to <b>practice coding problems</b> in Python.
+            You get a "main problem" - an actual LeetCode problem - and a set of "subproblems" that help you break down the main problem into smaller, manageable parts.
+            <br />
+            <br />
+            Solving small and manageable problems, you can <b>build up your skills</b> to tackle the main problem.
           </p>
           
           {/* Uncomment when you add the actual image */}
@@ -77,7 +80,7 @@ const AboutPage = () => {
         
         <div className="back-link-container">
           <Link to="/" className="back-link">
-            &larr; Back to Problems
+            &larr; Go to Problems
           </Link>
         </div>
       </div>

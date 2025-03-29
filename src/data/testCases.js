@@ -111,7 +111,7 @@ export const allTests = {
       name: 'Test from index 2 with "abcabcbb"',
       functionName: 'longest_substring_from_index',
       inputs: ['abcabcbb', 2],
-      expectedOutput: 4
+      expectedOutput: 3
     },
     {
       id: 3,
